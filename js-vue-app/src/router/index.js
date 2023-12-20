@@ -12,6 +12,12 @@ const router = createRouter({
       component: MainView,
     },
     {
+      path: '/track',
+      name: 'track',
+      meta: { layout: MainLayout },
+      component: () => import('../views/TrackView.vue'),
+    },
+    {
       path: '/login',
       name: 'login',
       meta: { layout: MainLayout },
