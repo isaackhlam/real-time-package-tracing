@@ -16,6 +16,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@vicons/ionicons5": "^0.12.0",
     "maplibre-gl": "^3.6.2",
     "vue": "^3.3.11",
     "vue-router": "^4.2.5"
@@ -26,6 +27,7 @@
     "eslint": "^8.55.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-vue": "^9.19.2",
+    "naive-ui": "^2.36.0",
     "prettier": "^3.1.0",
     "prettier-plugin-packagejson": "^2.4.6",
     "prettier-plugin-sort-json": "^3.1.0",
