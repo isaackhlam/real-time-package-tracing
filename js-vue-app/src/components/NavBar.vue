@@ -48,12 +48,12 @@ const menuOptions = [
         {
           to: {
             name: 'login',
-          }
+          },
         },
         "Login"
       ),
     key: 'login',
-    icon: renderIcon(LoginIcon)
+    icon: renderIcon(LoginIcon),
   },
 ]
 
