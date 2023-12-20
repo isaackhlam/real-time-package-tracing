@@ -1,14 +1,12 @@
-<template>
-  <div class="app">
-    <Heading />
-    <Map />
-  </div>
-</template>
-
 <script setup>
-  import Heading from './components/Heading.vue';
-  import Map from './components/Map.vue';
+  import { RouterView } from 'vue-router';
 </script>
+
+<template>
+  <component :is="$route.meta.layout || 'div'">
+    <RouterView />
+  </component>
+</template>
 
 <style>
   body {
@@ -20,9 +18,5 @@
 
   code {
     font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
-  }
-
-  .app {
-    text-align: center;
   }
 </style>

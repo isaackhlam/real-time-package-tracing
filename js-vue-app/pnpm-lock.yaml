@@ -5,6 +5,9 @@ dependencies:
   vue:
     specifier: ^3.3.11
     version: 3.3.11
+  vue-router:
+    specifier: ^4.2.5
+    version: 4.2.5(vue@3.3.11)
 devDependencies:
   '@vitejs/plugin-vue':
     specifier: ^4.5.2
@@ -613,6 +616,9 @@ packages:
       '@vue/compiler-dom': 3.3.11
       '@vue/shared': 3.3.11
     resolution: {integrity: sha512-Zd66ZwMvndxRTgVPdo+muV4Rv9n9DwQ4SSgWWKWkPFebHQfVYRrVjeygmmDmPewsHyznCNvJ2P2d6iOOhdv8Qg==}
+  /@vue/devtools-api@6.5.1:
+    dev: false
+    resolution: {integrity: sha512-+KpckaAQyfbvshdDW5xQylLni1asvNSGme1JFs8I1+/H5pHEhqUKMEQD/qn3Nx5+/nycBq11qAEi8lk+LXI2dA==}
   /@vue/reactivity-transform@3.3.11:
     dependencies:
       '@babel/parser': 7.23.6
@@ -2713,6 +2719,14 @@ packages:
     resolution: {integrity: sha512-q7tWyCVaV9f8iQyIA5Mkj/S6AoJ9KBN8IeUSf3XEmBrOtxOZnfTg5s4KClbZBCK3GtnT/+RyCLZyDHuZwTuBjg==}
     transitivePeerDependencies:
       - supports-color
+  /vue-router@4.2.5(vue@3.3.11):
+    dependencies:
+      '@vue/devtools-api': 6.5.1
+      vue: 3.3.11
+    dev: false
+    peerDependencies:
+      vue: ^3.2.0
+    resolution: {integrity: sha512-DIUpKcyg4+PTQKfFPX88UWhlagBEBEfJ5A8XDXRJLUnZOvcpMF8o/dnL90vpVkGaPbjvXazV/rC1qBKrZlFugw==}
   /vue@3.3.11:
     dependencies:
       '@vue/compiler-dom': 3.3.11
