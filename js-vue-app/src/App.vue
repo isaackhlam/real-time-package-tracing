@@ -1,14 +1,14 @@
+<script setup>
+  import Heading from './components/Heading.vue';
+  import Map from './components/Map.vue';
+</script>
+
 <template>
   <div class="app">
     <Heading />
     <Map />
   </div>
 </template>
-
-<script setup>
-  import Heading from './components/Heading.vue';
-  import Map from './components/Map.vue';
-</script>
 
 <style>
   body {
