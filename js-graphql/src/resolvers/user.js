@@ -23,7 +23,7 @@ const findUser = async (id) => {
     },
   });
   return await dynamoDBClient.send(command);
-}
+};
 
 const addUser = async (_p, { input }) => {
   const { id, name = 'UserName', password } = input;
