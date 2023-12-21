@@ -13,8 +13,24 @@ const dynamoDBClient = new DynamoDBClient({});
 
 const createToken = async ({ id, role }) => jwt.sign({ id, role }, SECRET, { expiresIn: '1d' });
 
+const findUser = async (id) => {
+  const command = new GetItemCommand({
+    TableName: USER_TABLE,
+    Key: {
+      id: {
+        S: id,
+      },
+    },
+  });
+  return await dynamoDBClient.send(command);
+}
+
 const addUser = async (_p, { input }) => {
   const { id, name = 'UserName', password } = input;
+
+  const isUserExist = !!(await findUser(id)).Item;
+  if (isUserExist) throw Error('User already Exist');
+
   const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
   const command = new PutItemCommand({
     TableName: USER_TABLE,
@@ -39,23 +55,15 @@ const addUser = async (_p, { input }) => {
 
 const loginUser = async (_p, { input }) => {
   const { id, password } = input;
-  const command = new GetItemCommand({
-    TableName: USER_TABLE,
-    Key: {
-      id: {
-        S: id,
-      },
-    },
-  });
-  const response = await dynamoDBClient.send(command);
+  const user = await findUser(id);
 
-  if (!response.Item) throw Error('User Not Found!');
+  if (!user.Item) throw Error('User Not Found!');
 
-  const hashedPassword = response.Item.password.S;
+  const hashedPassword = user.Item.password.S;
   const isPasswordValid = await bcrypt.compare(password, hashedPassword);
   if (!isPasswordValid) throw Error('Wrong Password!');
 
-  const token = await createToken({ id, role: response.Item.role.S });
+  const token = await createToken({ id, role: user.Item.role.S });
   return { token };
 };
 
