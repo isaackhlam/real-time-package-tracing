@@ -32,6 +32,9 @@ const int mqtt_port = 8883;
 const char* mqtt_user = ""; // If applicable
 const char* mqtt_password = ""; // If applicable
 
+uint64_t chipId = ESP.getEfuseMac(); // The chip ID is essentially its MAC address.
+String chipIdStr = String((uint32_t)(chipId >> 32), HEX) + String((uint32_t)chipId, HEX);
+
 static const char *root_ca PROGMEM = R"EOF(
 -----BEGIN CERTIFICATE-----
 MIIFazCCA1OgAwIBAgIRAIIQz7DSQONZRGPgu2OCiwAwDQYJKoZIhvcNAQELBQAw
@@ -126,14 +129,6 @@ void loop() {
           Serial.println(F("- location: INVALID"));
         }
 
-        Serial.print(F("- speed: "));
-        if (gps.speed.isValid()) {
-          Serial.print(gps.speed.kmph());
-          Serial.println(F(" km/h"));
-        } else {
-          Serial.println(F("INVALID"));
-        }
-
         Serial.print(F("- GPS date&time: "));
         if (gps.date.isValid() && gps.time.isValid()) {
           Serial.print(gps.date.year());
@@ -156,10 +151,12 @@ void loop() {
                 gps.date.year(), gps.date.month(), gps.date.day(),
                 gps.time.hour(), gps.time.minute(), gps.time.second());
 
+
+
         String payload = "{ \"latitude\": " + String(gps.location.lat(), 6) 
                       + ", \"longitude\": " + String(gps.location.lng(), 6)
                       + ", \"time\": " + "\"" + String(iso8601Time) + "\""
-                      //+ ", 'trackerId': " + String(ESP.getChipId())
+                      + ", \"trackerId\": \"" + String(chipIdStr) + "\""
                       + " }";
         client.publish("gps", payload.c_str());
         timer = millis();
@@ -176,7 +173,10 @@ void loop() {
       rfidTagId.concat(String(mfrc522.uid.uidByte[i], HEX));
     }
     rfidTagId.toUpperCase();
-    client.publish("rfid", rfidTagId.c_str());
+    String payload = "{ \"rfid\": \"" + String(rfidTagId.c_str()) + "\"" 
+                      + ", \"trackerId\": \"" + String(chipIdStr) + "\""
+                      + "}";
+    client.publish("rfid", payload.c_str());
     Serial.println("RFID Tag UID: " + rfidTagId);
 
     mfrc522.PICC_HaltA();
