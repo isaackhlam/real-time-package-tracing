@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: |
+  Development launch:
+  ```
+  sam local start-api -t ./local.yml --parameter-overrides `cat ./.env` -l message.log -p 3015
+  ```
+Parameters:
+  HiveMTHost:
+    Type: String
+  HiveMTPort:
+    Type: String
+  HiveMTProtocol:
+    Type: String
+  HiveMTUsername:
+    Type: String
+  HiveMTPassword:
+    Type: String
+Resources:
+  TrackerLocationUpdaterLambda:
+    Properties:
+      CodeUri: ./
+      Description: update tracker location
+      Environment:
+        Variables:
+          HIVEMT_HOST: !Ref 'HiveMTHost'
+          HIVEMT_PORT: !Ref 'HiveMTPort'
+          HIVEMT_PROTOCOL: !Ref 'HiveMTProtocol'
+          HIVEMT_USERNAME: !Ref 'HiveMTUsername'
+          HIVEMT_PASSWORD: !Ref 'HiveMTPassword'
+      Events:
+        HttpGet:
+          Properties:
+            Method: GET
+            Path: /
+          Type: Api
+        HttpOptions:
+          Properties:
+            Method: OPTIONS
+            Path: /
+          Type: Api
+        HttpPost:
+          Properties:
+            Method: POST
+            Path: /
+          Type: Api
+      Handler: src/index.handler
+      Runtime: nodejs16.x
+      Timeout: 60
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31
