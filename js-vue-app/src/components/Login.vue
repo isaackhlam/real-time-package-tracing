@@ -71,7 +71,7 @@
   // Button and Input Handler
   const handlePasswordInput = () => {
     if (registerModelRef.value.reenteredPassword) {
-      // reenteredPasswordItemRef.value.validate({ trigger: 'password-input' });
+      reenteredPasswordItemRef.value.validate({ trigger: 'password-input' });
     }
   };
 
