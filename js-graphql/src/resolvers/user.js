@@ -11,6 +11,7 @@ const SECRET = process.env.SECRET;
 
 const dynamoDBClient = new DynamoDBClient({});
 
+// Helper Function
 const createToken = async ({ id, role }) => jwt.sign({ id, role }, SECRET, { expiresIn: '1d' });
 
 const findUser = async (id) => {
@@ -25,7 +26,9 @@ const findUser = async (id) => {
   return await dynamoDBClient.send(command);
 };
 
-const addUser = async (_p, { input }) => {
+
+// Resolver
+const registerUserResolver = async (_p, { input }) => {
   const { id, name = 'UserName', password } = input;
 
   const isUserExist = !!(await findUser(id)).Item;
@@ -53,7 +56,7 @@ const addUser = async (_p, { input }) => {
   return { id, name, role: 'COMPANY' };
 };
 
-const loginUser = async (_p, { input }) => {
+const loginUserResolver = async (_p, { input }) => {
   const { id, password } = input;
   const user = await findUser(id);
 
@@ -92,6 +95,6 @@ export const Query = {
 };
 
 export const Mutation = {
-  register: addUser,
-  login: loginUser,
+  register: registerUserResolver,
+  login: loginUserResolver,
 };
