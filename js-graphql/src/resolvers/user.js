@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import * as dotenv from 'dotenv';
-import { DynamoDBClient, PutItemCommand, GetItemCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, PutItemCommand, GetItemCommand } from '@aws-sdk/client-dynamodb';
 
 dotenv.config();
 
@@ -11,43 +11,42 @@ const SECRET = process.env.SECRET;
 
 const dynamoDBClient = new DynamoDBClient({});
 
-const createToken = async ({ id, role }) =>
-  jwt.sign({ id, role }, SECRET, { expiresIn: '1d' });
+const createToken = async ({ id, role }) => jwt.sign({ id, role }, SECRET, { expiresIn: '1d' });
 
 const addUser = async (_p, { input }) => {
-  const { id, name="UserName", password } = input;
+  const { id, name = 'UserName', password } = input;
   const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
   const command = new PutItemCommand({
-    "TableName": USER_TABLE,
-    "Item": {
-      "id": {
-        "S": id,
+    TableName: USER_TABLE,
+    Item: {
+      id: {
+        S: id,
       },
-      "name": {
-        "S": name,
+      name: {
+        S: name,
       },
-      "password": {
-        "S": hashedPassword,
+      password: {
+        S: hashedPassword,
       },
-      "role": {
-        "S": "COMPANY"
-      }
-    }
+      role: {
+        S: 'COMPANY',
+      },
+    },
   });
   const response = await dynamoDBClient.send(command);
-  return { id, name, "role": "COMPANY" };
-}
+  return { id, name, role: 'COMPANY' };
+};
 
 const loginUser = async (_p, { input }) => {
   const { id, password } = input;
   const command = new GetItemCommand({
-    "TableName": USER_TABLE,
-    "Key": {
-      "id": {
-        "S": id
-      }
-    }
-  })
+    TableName: USER_TABLE,
+    Key: {
+      id: {
+        S: id,
+      },
+    },
+  });
   const response = await dynamoDBClient.send(command);
 
   if (!response.Item) throw Error('User Not Found!');
@@ -56,30 +55,29 @@ const loginUser = async (_p, { input }) => {
   const isPasswordValid = await bcrypt.compare(password, hashedPassword);
   if (!isPasswordValid) throw Error('Wrong Password!');
 
-  const token = await createToken({ id, "role": response.Item.role.S});
+  const token = await createToken({ id, role: response.Item.role.S });
   return { token };
-}
+};
 
 const meResolver = async (_p, _a, { me }) => {
-  if (!me) throw Error("Please Login!");
+  if (!me) throw Error('Please Login!');
   const meId = me.id;
   const command = new GetItemCommand({
-    "TableName": USER_TABLE,
-    "Key": {
-      "id": {
-        "S": meId
-      }
-    }
-  })
+    TableName: USER_TABLE,
+    Key: {
+      id: {
+        S: meId,
+      },
+    },
+  });
   const response = await dynamoDBClient.send(command);
-  if (!response.Item) throw Error("User Not Found!");
+  if (!response.Item) throw Error('User Not Found!');
   const meData = {
-    "id": response.Item.id.S,
-    "name": response.Item.name.S,
-  }
+    id: response.Item.id.S,
+    name: response.Item.name.S,
+  };
   return meData;
-}
-
+};
 
 export const Query = {
   me: meResolver,
