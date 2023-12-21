@@ -1,0 +1,12 @@
+type Location {
+    Longitude: String
+    Latitude: String
+}
+
+input TrackPackageInput {
+    id: ID!
+}
+
+type Query {
+    findPackage(input: TrackPackageInput!): Location
+}
