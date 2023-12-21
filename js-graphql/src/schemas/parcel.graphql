@@ -1,0 +1,17 @@
+type Location {
+    longitude: String
+    latitude: String
+}
+
+input TrackPackageInput {
+    id: ID!
+}
+
+type TrackPackageResponse {
+    location: Location
+    lastUpdateTime: String
+}
+
+type Query {
+    findPackage(input: TrackPackageInput!): TrackPackageResponse
+}
