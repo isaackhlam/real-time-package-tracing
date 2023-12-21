@@ -1,6 +1,6 @@
 type Location {
-    Longitude: String
-    Latitude: String
+    longitude: String
+    latitude: String
 }
 
 input TrackPackageInput {
