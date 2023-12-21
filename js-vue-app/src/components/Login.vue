@@ -2,6 +2,7 @@
   import { ref } from 'vue';
   import { NCard, NTabs, NTabPane, NForm, NFormItemRow, NInput, NButton } from 'naive-ui';
   import { request, gql } from 'graphql-request';
+  import Cookies from 'js-cookie';
 
   // Ref
   const formRef = ref(null);
@@ -113,13 +114,24 @@
             }
           }
         `;
+        const meQuery = gql`
+          query {
+            me {
+              id
+              name
+            }
+          }
+        `;
         const variables = {
           id: loginModelRef.value.userId,
           password: loginModelRef.value.password,
         };
         try {
           const data = await request("http://localhost:4000/graphql", loginMutation, variables);
-          console.log(data);
+          const me = await request("http://localhost:4000/graphql", meQuery, {}, { "x-token": data.login.token});
+          Cookies.set('x-token', data.login.token);
+          Cookies.set('userId', me.me.id);
+          Cookies.set('username', me.me.name);
         } catch (error) {
           console.log("Server Error", error);
         }
