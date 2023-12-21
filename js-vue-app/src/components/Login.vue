@@ -1,8 +1,10 @@
 <script setup>
   import { ref } from 'vue';
-  import { NCard, NTabs, NTabPane, NForm, NFormItemRow, NInput, NButton } from 'naive-ui';
+  import { NCard, NTabs, NTabPane, NForm, NFormItemRow, NInput, NButton, useMessage } from 'naive-ui';
   import { request, gql } from 'graphql-request';
   import Cookies from 'js-cookie';
+
+  const message = useMessage();
 
   // Ref
   const formRef = ref(null);
@@ -96,7 +98,8 @@
           const data = await request("http://localhost:4000/graphql", registerMutation, variables);
           console.log(data);
         } catch (error) {
-          console.log("Server Error", error);
+          console.log("Server Error: ", error);
+          message.error(error.response.errors[0].message);
         }
       } else {
         console.log(errors);
@@ -132,8 +135,10 @@
           Cookies.set('x-token', data.login.token);
           Cookies.set('userId', me.me.id);
           Cookies.set('username', me.me.name);
+          message.success("Login Successfully");
         } catch (error) {
-          console.log("Server Error", error);
+          console.log("Server Error: ", error);
+          message.error(error.response.errors[0].message);
         }
       } else {
         console.log("Form Input Error", errors);

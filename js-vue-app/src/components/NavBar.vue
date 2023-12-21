@@ -1,13 +1,15 @@
 <script setup>
   import { h, ref } from 'vue';
   import { RouterLink } from 'vue-router';
-  import { NIcon, NMenu, NP } from 'naive-ui';
+  import { NIcon, NMenu, NP, useMessage } from 'naive-ui';
   import {
     MapOutline as MapIcon,
     PersonOutline as LoginIcon,
     HomeOutline as HomeIcon
   } from '@vicons/ionicons5';
   import Cookies from 'js-cookie';
+
+  const message = useMessage();
 
   const meRef = ref(null);
   meRef.value = Cookies.get('x-token');
@@ -77,6 +79,7 @@
     Cookies.remove('userId');
     Cookies.remove('username');
     meRef.value = undefined;
+    message.success("Logout Successfully");
   };
 </script>
 
