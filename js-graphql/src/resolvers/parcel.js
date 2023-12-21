@@ -18,7 +18,7 @@ const findPackageResolver = async (_p, { input }) => {
     },
   });
   const response = await dynamoDBClient.send(command);
-  if(!response.Item) throw Error('Package Not Found!');
+  if (!response.Item) throw Error('Package Not Found!');
 
   const geoLocation = {
     longitude: response.Item.lastUpdateLongitude.S,
