@@ -1,10 +1,11 @@
-import { DynamoDBClient, PutItemCommand, QueryCommand } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, PutItemCommand, QueryCommand, GetItemCommand } from '@aws-sdk/client-dynamodb';
 
 const { TRACKER_LOCATION_TABLE, PACKAGE_TABLE } = process.env;
 
 const dynamoDBClient = new DynamoDBClient({});
 
 const updatePackage = async ({ trackerId = 'Unregister', trackerType = 'Truck', rfid }) => {
+
   const queryCommand = new QueryCommand({
     TableName: TRACKER_LOCATION_TABLE,
     KeyConditionExpression: 'id = :id',
@@ -16,8 +17,21 @@ const updatePackage = async ({ trackerId = 'Unregister', trackerType = 'Truck', 
   });
 
   let response = await dynamoDBClient.send(queryCommand);
-
   const { time, latitude, longitude } = response.Items[0];
+
+  const getCommand = new GetItemCommand({
+    TableName: PACKAGE_TABLE,
+    Key: {
+      id: {
+        S: rfid,
+      },
+    },
+  });
+  response = await dynamoDBClient.send(getCommand);
+  if (response.Item?.locationType.S === "Truck") {
+    trackerId = "Delivered",
+    trackerType = "Delivered",
+  }
 
   const putCommand = new PutItemCommand({
     TableName: PACKAGE_TABLE,
