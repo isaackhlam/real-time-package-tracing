@@ -7,6 +7,11 @@ input TrackPackageInput {
     id: ID!
 }
 
+type TrackPackageResponse {
+    location: Location
+    lastUpdateTime: String
+}
+
 type Query {
-    findPackage(input: TrackPackageInput!): Location
+    findPackage(input: TrackPackageInput!): TrackPackageResponse
 }

@@ -1,5 +1,5 @@
 import * as dotenv from 'dotenv';
-import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
 
 dotenv.config();
 
@@ -18,13 +18,15 @@ const findPackageResolver = async (_p, { input }) => {
     },
   });
   const response = await dynamoDBClient.send(command);
+  if(!response.Item) throw Error('Package Not Found!');
+
   const geoLocation = {
     longitude: response.Item.lastUpdateLongitude.S,
     latitude: response.Item.lastUpdateLatitude.S,
   };
-  return {...geoLocation};
-}
+  return { location: geoLocation, lastUpdateTime: response.Item.lastUpdateTime.S };
+};
 
 export const Query = {
-  findPackage: findPackageResolver
+  findPackage: findPackageResolver,
 };
