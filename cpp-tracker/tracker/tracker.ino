@@ -6,6 +6,8 @@
  * For more detail (instruction and wiring diagram), visit https://esp32io.com/tutorials/esp32-gps
  */
 
+#include <SPI.h>
+#include <MFRC522.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <TinyGPS++.h>
@@ -14,17 +16,21 @@
 
 
 #define GPS_BAUDRATE 9600  // The default baudrate of NEO-6M is 9600
+#define SS_PIN    5  // Slave Select pin
+#define RST_PIN   27 // Reset pin
 
-TinyGPSPlus gps;  // the TinyGPS++ object
+MFRC522 mfrc522(SS_PIN, RST_PIN); // Create MFRC522 instance
+TinyGPSPlus gps;  // The TinyGPS++ object
 WiFiClientSecure espClient;
 PubSubClient client(espClient);
+
 const char* ssid = "";     // Replace with your network's SSID
 const char* password = ""; // Replace with your network's password
 
 const char* mqtt_server = "";
 const int mqtt_port = 8883;
 const char* mqtt_user = ""; // If applicable
-const char* mqtt_password = ""// If applicable
+const char* mqtt_password = ""; // If applicable
 
 static const char *root_ca PROGMEM = R"EOF(
 -----BEGIN CERTIFICATE-----
@@ -62,6 +68,8 @@ emyPxgcYxn/eR44/KJ4EBs+lVDR3veyJm+kXQ99b21/+jh5Xos1AnX5iItreGCc=
 
 void setup() {
   Serial.begin(9600);
+  SPI.begin(); // Init SPI bus
+  mfrc522.PCD_Init(); // Init MFRC522
   Serial2.begin(GPS_BAUDRATE);
   WiFi.begin(ssid, password);
 
@@ -90,62 +98,91 @@ void reconnect() {
   }
 }
 
+int timer = 0;
+
 void loop() {
   if (!client.connected()) {
     reconnect();
   }
   client.loop();
-  if (Serial2.available() > 0) {
-    if (gps.encode(Serial2.read())) {
-      if (gps.location.isValid()) {
-        Serial.print(F("- latitude: "));
-        Serial.println(gps.location.lat(), 6);
 
-        Serial.print(F("- longitude: "));
-        Serial.println(gps.location.lng(), 6);
+  // Read and publish GPS data every 10 seconds
+  if(millis() - timer > 10000){
+    if (Serial2.available() > 0) {
+      if (gps.encode(Serial2.read())) {
+        if (gps.location.isValid()) {
+          Serial.print(F("- latitude: "));
+          Serial.println(gps.location.lat(), 6);
 
-        Serial.print(F("- altitude: "));
-        if (gps.altitude.isValid())
-          Serial.println(gps.altitude.meters());
-        else
+          Serial.print(F("- longitude: "));
+          Serial.println(gps.location.lng(), 6);
+
+          Serial.print(F("- altitude: "));
+          if (gps.altitude.isValid())
+            Serial.println(gps.altitude.meters());
+          else
+            Serial.println(F("INVALID"));
+        } else {
+          Serial.println(F("- location: INVALID"));
+        }
+
+        Serial.print(F("- speed: "));
+        if (gps.speed.isValid()) {
+          Serial.print(gps.speed.kmph());
+          Serial.println(F(" km/h"));
+        } else {
           Serial.println(F("INVALID"));
-      } else {
-        Serial.println(F("- location: INVALID"));
-      }
+        }
 
-      Serial.print(F("- speed: "));
-      if (gps.speed.isValid()) {
-        Serial.print(gps.speed.kmph());
-        Serial.println(F(" km/h"));
-      } else {
-        Serial.println(F("INVALID"));
-      }
+        Serial.print(F("- GPS date&time: "));
+        if (gps.date.isValid() && gps.time.isValid()) {
+          Serial.print(gps.date.year());
+          Serial.print(F("-"));
+          Serial.print(gps.date.month());
+          Serial.print(F("-"));
+          Serial.print(gps.date.day());
+          Serial.print(F(" "));
+          Serial.print(gps.time.hour());
+          Serial.print(F(":"));
+          Serial.print(gps.time.minute());
+          Serial.print(F(":"));
+          Serial.println(gps.time.second());
+        } else {
+          Serial.println(F("INVALID"));
+        }
+        
+        char iso8601Time[25];
+        sprintf(iso8601Time, "%04d-%02d-%02dT%02d:%02d:%02dZ", 
+                gps.date.year(), gps.date.month(), gps.date.day(),
+                gps.time.hour(), gps.time.minute(), gps.time.second());
 
-      Serial.print(F("- GPS date&time: "));
-      if (gps.date.isValid() && gps.time.isValid()) {
-        Serial.print(gps.date.year());
-        Serial.print(F("-"));
-        Serial.print(gps.date.month());
-        Serial.print(F("-"));
-        Serial.print(gps.date.day());
-        Serial.print(F(" "));
-        Serial.print(gps.time.hour());
-        Serial.print(F(":"));
-        Serial.print(gps.time.minute());
-        Serial.print(F(":"));
-        Serial.println(gps.time.second());
-      } else {
-        Serial.println(F("INVALID"));
+        String payload = "{ \"latitude\": " + String(gps.location.lat(), 6) 
+                      + ", \"longitude\": " + String(gps.location.lng(), 6)
+                      + ", \"time\": " + "\"" + String(iso8601Time) + "\""
+                      //+ ", 'trackerId': " + String(ESP.getChipId())
+                      + " }";
+        client.publish("gps", payload.c_str());
+        timer = millis();
+        Serial.println();
       }
-      
-      String payload = "latitude: " + String(gps.location.lat()) + ", longitude: " + String(gps.location.lng());
-      client.publish("gps", payload.c_str());
-
-      Serial.println();
-      delay(10000); // Wait for 10 seconds before sending again
     }
   }
+  
+  // Check for new RFID card
+  if (mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial()) {
+    String rfidTagId = "";
+    for (byte i = 0; i < mfrc522.uid.size; i++) {
+      rfidTagId.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? "0" : ""));
+      rfidTagId.concat(String(mfrc522.uid.uidByte[i], HEX));
+    }
+    rfidTagId.toUpperCase();
+    client.publish("rfid", rfidTagId.c_str());
+    Serial.println("RFID Tag UID: " + rfidTagId);
 
-  if (millis() > 5000 && gps.charsProcessed() < 10)
-    Serial.println(F("No GPS data received: check wiring"));
+    mfrc522.PICC_HaltA();
+    mfrc522.PCD_StopCrypto1();
+  }
+
+  // GPS error check (optional)
+  
 }
