@@ -1,0 +1,37 @@
+type User {
+    # Unique login name
+    id: ID!
+    # User custom name, can be modified
+    name: String
+    password: String
+    role: UserRole
+}
+
+enum UserRole {
+    COMPANY
+    CUSTOMER
+}
+
+input LoginInput {
+    id: ID!
+    password: String!
+}
+
+input RegisterInput {
+    id: ID!
+    name: String
+    password: String!
+}
+
+type Token {
+    token: String!
+}
+
+type Query {
+    me: User
+}
+
+type Mutation {
+    login(input: LoginInput!): Token
+    register(input: RegisterInput!): User
+}
