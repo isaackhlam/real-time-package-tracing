@@ -1,6 +1,7 @@
 <script setup>
   import { ref } from 'vue';
   import { NCard, NTabs, NTabPane, NForm, NFormItemRow, NInput, NButton } from 'naive-ui';
+  import { request, gql } from 'graphql-request';
 
   // Ref
   const formRef = ref(null);
@@ -70,16 +71,32 @@
   // Button and Input Handler
   const handlePasswordInput = () => {
     if (registerModelRef.value.reenteredPassword) {
-      reenteredPasswordItemRef.value.validate({ trigger: 'password-input' });
+      // reenteredPasswordItemRef.value.validate({ trigger: 'password-input' });
     }
   };
 
   const handleRegisterButtonClick = (e) => {
     e.preventDefault();
-    formRef.value?.validate((errors) => {
+    formRef.value?.validate(async (errors) => {
       if (!errors) {
-        const formData = JSON.stringify(formRef.value.model);
-        console.log(formData);
+        const registerMutation = gql`
+          mutation($id: ID!, $name: String, $password: String!) {
+            register(input: {id: $id, name: $name, password: $password}) {
+              id
+            }
+          }
+        `;
+        const variables = {
+          id: registerModelRef.value.userId,
+          name: registerModelRef.value.username || "UserName",
+          password: registerModelRef.value.password,
+        };
+        try {
+          const data = await request("http://localhost:4000/graphql", registerMutation, variables);
+          console.log(data);
+        } catch (error) {
+          console.log("Server Error", error);
+        }
       } else {
         console.log(errors);
       }
@@ -87,8 +104,29 @@
   };
 
   const handleLoginButtonClick = () => {
-    const formData = JSON.stringify(formRef.value.model);
-    console.log(formData);
+    formRef.value?.validate(async (errors) => {
+      if (!errors) {
+        const loginMutation = gql`
+          mutation($id: ID!, $password: String!) {
+            login(input: {id: $id, password: $password}) {
+              token
+            }
+          }
+        `;
+        const variables = {
+          id: loginModelRef.value.userId,
+          password: loginModelRef.value.password,
+        };
+        try {
+          const data = await request("http://localhost:4000/graphql", loginMutation, variables);
+          console.log(data);
+        } catch (error) {
+          console.log("Server Error", error);
+        }
+      } else {
+        console.log("Form Input Error", errors);
+      }
+    });
   };
 
 </script>
