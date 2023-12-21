@@ -1,9 +1,6 @@
 import { DynamoDBClient, PutItemCommand, QueryCommand } from '@aws-sdk/client-dynamodb';
 
-const {
-  TRACKER_LOCATION_TABLE,
-  PACKAGE_TABLE,
-} = process.env;
+const { TRACKER_LOCATION_TABLE, PACKAGE_TABLE } = process.env;
 
 const dynamoDBClient = new DynamoDBClient({});
 
@@ -53,12 +50,8 @@ const updatePackage = async ({ trackerId = 'Unregister', trackerType = 'Truck', 
   };
 };
 
-const updateTrackerLocation = async ({
-  trackerId = 'Unregister',
-  time,
-  latitude,
-  longitude,
-}) => {
+// eslint-disable-next-line object-curly-newline
+const updateTrackerLocation = async ({ trackerId = 'Unregister', time, latitude, longitude }) => {
   const command = new PutItemCommand({
     TableName: TRACKER_LOCATION_TABLE,
     Item: {

@@ -5,9 +5,9 @@ Description: |
   sam local start-api -t ./local.yml --parameter-overrides `cat ./.env` -l message.log -p 3015
   ```
 Parameters:
-  TrackerLocationTable:
-    Type: String
   PackageTable:
+    Type: String
+  TrackerLocationTable:
     Type: String
 Resources:
   TrackerLocationUpdaterLambda:
@@ -16,8 +16,8 @@ Resources:
       Description: update tracker location
       Environment:
         Variables:
-          TRACKER_LOCATION_TABLE: !Ref 'TrackerLocationTable'
           PACKAGE_TABLE: !Ref 'PackageTable'
+          TRACKER_LOCATION_TABLE: !Ref 'TrackerLocationTable'
       Events:
         HttpGet:
           Properties:
