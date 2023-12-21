@@ -5,15 +5,9 @@ Description: |
   sam local start-api -t ./local.yml --parameter-overrides `cat ./.env` -l message.log -p 3015
   ```
 Parameters:
-  HiveMTHost:
+  TrackerLocationTable:
     Type: String
-  HiveMTPort:
-    Type: String
-  HiveMTProtocol:
-    Type: String
-  HiveMTUsername:
-    Type: String
-  HiveMTPassword:
+  PackageTable:
     Type: String
 Resources:
   TrackerLocationUpdaterLambda:
@@ -22,11 +16,8 @@ Resources:
       Description: update tracker location
       Environment:
         Variables:
-          HIVEMT_HOST: !Ref 'HiveMTHost'
-          HIVEMT_PORT: !Ref 'HiveMTPort'
-          HIVEMT_PROTOCOL: !Ref 'HiveMTProtocol'
-          HIVEMT_USERNAME: !Ref 'HiveMTUsername'
-          HIVEMT_PASSWORD: !Ref 'HiveMTPassword'
+          TRACKER_LOCATION_TABLE: !Ref 'TrackerLocationTable'
+          PACKAGE_TABLE: !Ref 'PackageTable'
       Events:
         HttpGet:
           Properties:
